@@ -68,7 +68,7 @@ if __Author__ != ('WGeorgeCode', 'Ansyso'):
         _code = str(f"""__Author__ = ('WGeorgeCode', 'Ansyso')\n{___sec___}\n_pymeomeo = vars(globals()['__builtins__'])\ntry:_pymeomeo['exec'](_pymeomeo['__import__']('marshal').loads(_pymeomeo['__import__']('gzip').decompress(_pymeomeo['__import__']('zlib').decompress(_pymeomeo['__import__']('lzma').decompress(_pymeomeo['__import__']('bz2').decompress(_pymeomeo['__import__']('base64').a85decode(""") + str(__obf_____(_code))+""")))))))\nexcept Exception as e:__import__('sys').exit(e)""")
 
     for i in range(_lyr * 2):
-        _code = str(f"""#!/usr/bin/env python3\n__Author__ = ('WGeorgeCode', 'Ansyso')\n_pymeomeo = vars(globals()['__builtins__'])\ntry:_pymeomeo['exec'](_pymeomeo['__import__']('marshal').loads(_pymeomeo['__import__']('gzip').decompress(_pymeomeo['__import__']('zlib').decompress(_pymeomeo['__import__']('lzma').decompress(_pymeomeo['__import__']('bz2').decompress(_pymeomeo['__import__']('base64').a85decode({str(__obf_____(_code))})))))))\nexcept Exception as e:__import__('sys').exit(e)""")
+        _code = str(f"""__Author__ = ('WGeorgeCode', 'Ansyso')\n{___sec___}\n_pymeomeo = vars(globals()['__builtins__'])\ntry:_pymeomeo['exec'](_pymeomeo['__import__']('marshal').loads(_pymeomeo['__import__']('gzip').decompress(_pymeomeo['__import__']('zlib').decompress(_pymeomeo['__import__']('lzma').decompress(_pymeomeo['__import__']('bz2').decompress(_pymeomeo['__import__']('base64').a85decode({str(__obf_____(_code))}))))))))\nexcept Exception as e:__import__('sys').exit(e)""")
 
     output_path = file_path.replace(".py", "_obf.py")
     with open(output_path, "w", encoding="utf-8") as f:
