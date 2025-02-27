@@ -1,18 +1,13 @@
 import os
 import sys
 import logging
-import asyncio
-
-try:
-    import bz2, gzip, lzma, zlib, marshal, base64
-except ModuleNotFoundError:
-    bz2 = __import__('bz2')
-    gzip = __import__('gzip')
-    lzma = __import__('lzma')
-    zlib = __import__('zlib')
-    marshal = __import__('marshal')
-    base64 = __import__('base64')
-
+import aiofiles
+import base64
+import bz2
+import gzip
+import lzma
+import zlib
+import marshal
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
@@ -26,16 +21,51 @@ logger = logging.getLogger(__name__)
 # Get Bot Token from Environment
 TOKEN = os.getenv("TOKEN")
 if not TOKEN:
-    sys.exit("Error: TELEGRAM_BOT_TOKEN is not set in environment variables.")
+    logger.error("Error: TELEGRAM_BOT_TOKEN is not set in environment variables.")
+    sys.exit(1)
 
-# Obfuscation Function
-def __obf_____(obj):
-    ____ = "__import__('base64').a85encode(__import__('bz2').compress(__import__('lzma').compress(__import__('zlib').compress(__import__('gzip').compress(__import__('marshal').dumps(obj))))))"
-    ___x_ = eval(____)
-    return repr(___x_)
+# Secure Obfuscation Function
+def obfuscate_code(code: str, layers: int = 5) -> str:
+    """Obfuscates Python code by applying multiple encoding layers."""
+    security_check = """
+if str(__import__('sys').version[0:4]) != '{py_version}':
+    print("This code doesn't work in your Python version")
+    print("Your version: ", str(__import__('sys').version[0:4]))
+    print("You need to install Python {py_version}")
+    __import__("sys").exit(2008)
+if __Author__ != ('WGeorgeCode', 'Ansyso'):
+    raise MemoryError('>> GOOD LUCK!! CONMEMAY') from None
+""".format(py_version=str(sys.version[:4]))
+
+    obfuscated = code
+    for _ in range(layers):
+        obfuscated = base64.a85encode(
+            bz2.compress(
+                lzma.compress(
+                    zlib.compress(
+                        gzip.compress(
+                            marshal.dumps(obfuscated.encode())
+                        )
+                    )
+                )
+            )
+        ).decode()
+
+        obfuscated = f"""__Author__ = ('WGeorgeCode', 'Ansyso')
+{security_check}
+_py = vars(globals()['__builtins__'])
+try:
+    _py['exec'](_py['__import__']('marshal').loads(_py['__import__']('gzip').decompress(
+    _py['__import__']('zlib').decompress(_py['__import__']('lzma').decompress(
+    _py['__import__']('bz2').decompress(_py['__import__']('base64').a85decode("{obfuscated}"))))))))
+except Exception as e:
+    __import__('sys').exit(e)
+"""
+
+    return obfuscated
 
 async def start(update: Update, context: CallbackContext) -> None:
-    """Sends a welcome message when the bot is started."""
+    """Sends a welcome message when the bot starts."""
     await update.message.reply_text("Hello! Send me a Python file to obfuscate.")
 
 async def obfuscate(update: Update, context: CallbackContext) -> None:
@@ -48,50 +78,41 @@ async def obfuscate(update: Update, context: CallbackContext) -> None:
 
     file = await document.get_file()
     file_path = f"/tmp/{document.file_name}"
-    await file.download(file_path)
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        _code = f.read()
+    try:
+        await file.download(file_path)
 
-    _lyr = 5  # Default layer, can be customized
-    ___sec___ = f"""
-if str(__import__('sys').version[0:4]) != '{str(__import__('sys').version[0:4])}':
-    print("This code doesn't work in your Python version")
-    print("Your version: ", str(__import__('sys').version[0:4]))
-    print("You need to install Python {str(__import__('sys').version[0:4])}")
-    __import__("sys").exit(2008)
-if __Author__ != ('WGeorgeCode', 'Ansyso'):
-    raise MemoryError('>> GOOD LUCK!! CONMEMAY') from None
-"""
+        async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
+            original_code = await f.read()
 
-    for i in range(_lyr):
-            _code = str(f"""__Author__ = ('WGeorgeCode', 'Ansyso')
-{___sec___}
-_pymeomeo = vars(globals()['__builtins__'])
-try:_pymeomeo['exec'](_pymeomeo['__import__']('marshal').loads(_pymeomeo['__import__']('gzip').decompress(_pymeomeo['__import__']('zlib').decompress(_pymeomeo['__import__']('lzma').decompress(_pymeomeo['__import__']('bz2').decompress(_pymeomeo['__import__']('base64').a85decode(""") + str(__obf_____(_code))+""")))))))
-except Exception as e:__import__('sys').exit(e)"""
+        obfuscated_code = obfuscate_code(original_code)
 
+        output_path = file_path.replace(".py", "_obf.py")
+        async with aiofiles.open(output_path, "w", encoding="utf-8") as f:
+            await f.write(obfuscated_code)
 
-    for i in range(_lyr * 2):
-        _code = str(f"""__Author__ = ('WGeorgeCode', 'Ansyso')\n{___sec___}\n_pymeomeo = vars(globals()['__builtins__'])\ntry:_pymeomeo['exec'](_pymeomeo['__import__']('marshal').loads(_pymeomeo['__import__']('gzip').decompress(_pymeomeo['__import__']('zlib').decompress(_pymeomeo['__import__']('lzma').decompress(_pymeomeo['__import__']('bz2').decompress(_pymeomeo['__import__']('base64').a85decode({str(__obf_____(_code))}))))))))\nexcept Exception as e:__import__('sys').exit(e)""")
+        await update.message.reply_document(document=open(output_path, "rb"))
 
-    output_path = file_path.replace(".py", "_obf.py")
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(_code)
+    except Exception as e:
+        logger.error(f"Error obfuscating file: {e}")
+        await update.message.reply_text("An error occurred while processing your file.")
 
-    await update.message.reply_document(document=open(output_path, "rb"))
-    os.remove(file_path)
-    os.remove(output_path)
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if os.path.exists(output_path):
+            os.remove(output_path)
 
 def main():
     """Main function to run the bot."""
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.Document.PYTHON, obfuscate))
+    app.add_handler(MessageHandler(filters.Document.FILE_EXTENSION("py"), obfuscate))
 
     logger.info("Bot is running...")
     app.run_polling()
 
 if __name__ == "__main__":
     main()
+    
