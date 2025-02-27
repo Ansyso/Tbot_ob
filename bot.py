@@ -55,9 +55,7 @@ if __Author__ != ('WGeorgeCode', 'Ansyso'):
 {security_check}
 _py = vars(globals()['__builtins__'])
 try:
-    _py['exec'](_py['__import__']('marshal').loads(_py['__import__']('gzip').decompress(
-    _py['__import__']('zlib').decompress(_py['__import__']('lzma').decompress(
-    _py['__import__']('bz2').decompress(_py['__import__']('base64').a85decode("{obfuscated}"))))))))
+    _py['exec'](_py['__import__']('marshal').loads(_py['__import__']('gzip').decompress(_py['__import__']('zlib').decompress(_py['__import__']('lzma').decompress(_py['__import__']('bz2').decompress(_py['__import__']('base64').a85decode("{obfuscated}"))))))))
 except Exception as e:
     __import__('sys').exit(e)
 """
@@ -108,7 +106,7 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.Document.FILE_EXTENSION("py"), obfuscate))
+    app.add_handler(MessageHandler(filters.Document.MimeType("text/x-python"), obfuscate))
 
     logger.info("Bot is running...")
     app.run_polling()
